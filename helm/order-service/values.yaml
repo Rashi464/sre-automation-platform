@@ -1,0 +1,30 @@
+replicaCount: 2
+
+image:
+  repository: sre-automation-platform
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  type: LoadBalancer
+  port: 80
+  targetPort: 8000
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 70
+
+environment:
+  APP_NAME: "Real-Time E-Commerce Order Processing Service"
+  APP_VERSION: "1.0.0"
+  ENVIRONMENT: "production"
