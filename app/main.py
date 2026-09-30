@@ -1,9 +1,18 @@
-from fastapi import FastAPI
-from datetime import datetime, timezone
+from fastapi import FastAPI, Depends, HTTPException
+from sqlalchemy.orm import Session
+
+from .database import Base, engine, get_db
+from .models import Order
+from .schemas import OrderCreate, OrderResponse
+
+
+# Create database tables
+Base.metadata.create_all(bind=engine)
+
 
 app = FastAPI(
-    title="SRE Automation Platform",
-    description="Cloud-native application for SRE and DevOps automation",
+    title="Real-Time E-Commerce Order Processing Service",
+    description="Cloud-native order processing platform with SRE and DevOps automation",
     version="1.0.0",
 )
 
@@ -11,43 +20,56 @@ app = FastAPI(
 @app.get("/")
 def root():
     return {
-        "application": "SRE Automation Platform",
+        "service": "Order Processing Service",
         "status": "running",
-        "message": "Welcome to the SRE Automation Platform"
+        "version": "1.0.0"
     }
 
 
 @app.get("/health")
-def health_check():
+def health():
     return {
         "status": "healthy",
-        "timestamp": datetime.now(timezone.utc).isoformat()
+        "service": "order-service"
     }
 
 
-@app.get("/employees")
-def get_employees():
-    return [
-        {"id": 1, "name": "Ananya", "role": "Software Engineer"},
-        {"id": 2, "name": "Rahul", "role": "DevOps Engineer"},
-        {"id": 3, "name": "Priya", "role": "SRE Engineer"},
-    ]
+@app.post("/orders", response_model=OrderResponse)
+def create_order(
+    order: OrderCreate,
+    db: Session = Depends(get_db)
+):
+    new_order = Order(
+        customer_name=order.customer_name,
+        product=order.product,
+        quantity=order.quantity,
+        amount=order.amount,
+        status="PLACED"
+    )
+
+    db.add(new_order)
+    db.commit()
+    db.refresh(new_order)
+
+    return new_order
 
 
-@app.get("/employees/{employee_id}")
-def get_employee(employee_id: int):
-    employees = {
-        1: {"id": 1, "name": "Ananya", "role": "Software Engineer"},
-        2: {"id": 2, "name": "Rahul", "role": "DevOps Engineer"},
-        3: {"id": 3, "name": "Priya", "role": "SRE Engineer"},
-    }
+@app.get("/orders", response_model=list[OrderResponse])
+def get_orders(db: Session = Depends(get_db)):
+    return db.query(Order).all()
 
-    employee = employees.get(employee_id)
 
-    if not employee:
-        return {
-            "error": "Employee not found",
-            "employee_id": employee_id
-        }
+@app.get("/orders/{order_id}", response_model=OrderResponse)
+def get_order(
+    order_id: int,
+    db: Session = Depends(get_db)
+):
+    order = db.query(Order).filter(Order.id == order_id).first()
 
-    return employee
+    if not order:
+        raise HTTPException(
+            status_code=404,
+            detail="Order not found"
+        )
+
+    return order
