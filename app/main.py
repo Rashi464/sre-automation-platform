@@ -1,5 +1,7 @@
+from prometheus_fastapi_instrumentator import Instrumentator
 from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
+from sqlalchemy import text
 
 from .database import Base, engine, get_db
 from .models import Order
@@ -15,7 +17,7 @@ app = FastAPI(
     description="Cloud-native order processing platform with SRE and DevOps automation",
     version="1.0.0",
 )
-
+Instrumentator().instrument(app).expose(app)
 
 @app.get("/")
 def root():
@@ -27,11 +29,25 @@ def root():
 
 
 @app.get("/health")
-def health():
-    return {
-        "status": "healthy",
-        "service": "order-service"
-    }
+def health(db: Session = Depends(get_db)):
+    try:
+        db.execute(text("SELECT 1"))
+
+        return {
+            "status": "healthy",
+            "service": "order-service",
+            "database": "healthy"
+        }
+
+    except Exception:
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "status": "unhealthy",
+                "service": "order-service",
+                "database": "unhealthy"
+            }
+        )
 
 
 @app.post("/orders", response_model=OrderResponse)
