@@ -1,21 +1,27 @@
 name: Ansible Validation
 
-on: [push, pull_request, workflow_dispatch]
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
 
 jobs:
-ansible-check:
-runs-on: ubuntu-latest
-steps:
-- name: Checkout repository
-uses: actions/checkout@v4
+  ansible-check:
+    runs-on: ubuntu-latest
 
-```
-  - name: Install Ansible
-    run: |
-      python -m pip install --upgrade pip
-      python -m pip install ansible-core
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-  - name: Validate Ansible playbook
-    run: |
-      ansible-playbook --syntax-check -i ansible/inventory.ini ansible/site.yml
-```
+      - name: Install Ansible
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install ansible-core
+
+      - name: Validate Ansible playbook
+        run: |
+          ansible-playbook --syntax-check -i ansible/inventory.ini ansible/site.yml
