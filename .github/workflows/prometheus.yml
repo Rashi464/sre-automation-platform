@@ -1,0 +1,25 @@
+name: Prometheus Validation
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  prometheus-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Validate Prometheus configuration
+        run: |
+          docker run --rm \
+            -v "${{ github.workspace }}/monitoring/prometheus:/etc/prometheus" \
+            prom/prometheus:latest \
+            promtool check config /etc/prometheus/prometheus.yml
