@@ -1,0 +1,33 @@
+---
+- name: Configure SRE Automation Platform
+  hosts: order_service
+  become: false
+
+  tasks:
+
+    - name: Display target environment
+      ansible.builtin.debug:
+        msg: "Configuring {{ application_name }} for {{ environment }} environment"
+
+    - name: Create application directories
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        mode: "0755"
+      loop: "{{ required_directories }}"
+
+    - name: Generate application environment configuration
+      ansible.builtin.template:
+        src: order-service.env.j2
+        dest: "{{ application_directory }}/config/order-service.env"
+        mode: "0644"
+
+    - name: Verify application configuration
+      ansible.builtin.stat:
+        path: "{{ application_directory }}/config/order-service.env"
+      register: application_config
+
+    - name: Report configuration status
+      ansible.builtin.debug:
+        msg: "Application configuration created successfully"
+      when: application_config.stat.exists

@@ -1,0 +1,12 @@
+---
+project_name: sre-automation-platform
+application_name: order-service
+application_port: 8000
+application_user: sreapp
+application_directory: /opt/order-service
+environment: production
+
+required_directories:
+  - "{{ application_directory }}"
+  - "{{ application_directory }}/logs"
+  - "{{ application_directory }}/config"
