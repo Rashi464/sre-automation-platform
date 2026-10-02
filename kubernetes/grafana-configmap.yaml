@@ -1,20 +1,14 @@
 apiVersion: v1
 kind: ConfigMap
-
 metadata:
   name: grafana-dashboard
-
 data:
-  order-service-dashboard.json: |
+  dashboard.json: |
     {
       "title": "Order Service SRE Dashboard",
-      "uid": "order-service-sre",
+      "panels": [],
       "schemaVersion": 39,
-      "version": 1,
-      "refresh": "15s",
-      "panels": []
+      "version": 1
     }
-
-
 
     
