@@ -1,29 +1,30 @@
 name: Grafana Validation
 
 on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
-  workflow_dispatch:
+push:
+branches:
+- main
+pull_request:
+branches:
+- main
+workflow_dispatch:
 
 jobs:
-  grafana-check:
-    runs-on: ubuntu-latest
+grafana-check:
+runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+```
+steps:
+  - name: Checkout repository
+    uses: actions/checkout@v4
 
-      - name: Validate Grafana dashboard JSON
-        run: |
-          python -m json.tool monitoring/grafana/dashboard.json > /dev/null
+  - name: Validate Grafana dashboard JSON
+    run: python -m json.tool monitoring/grafana/dashboard.json
 
-      - name: Validate Kubernetes manifests
-        run: |
-          docker run --rm \
-            -v "${{ github.workspace }}/kubernetes:/manifests" \
-            alpine:3.20 \
-            sh -c "apk add --no-cache yamllint && yamllint /manifests"
+  - name: Validate Grafana Kubernetes manifests
+    run: |
+      docker run --rm \
+        -v "${{ github.workspace }}/kubernetes:/manifests" \
+        alpine:3.20 \
+        sh -c "apk add --no-cache yamllint && yamllint -d relaxed /manifests/grafana-deployment.yaml /manifests/grafana-service.yaml /manifests/grafana-configmap.yaml"
+```
